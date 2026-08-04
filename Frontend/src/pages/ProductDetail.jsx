@@ -1,17 +1,65 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Check } from 'lucide-react'
 import Layout from '../components/Layout'
 import ProductCard from '../components/ProductCard'
-import { getProductById, products, formatPrice, getPlaceholderImage } from '../data/products'
+import { getProductById, products as staticProducts, formatPrice, getPlaceholderImage } from '../data/products'
 import { useCart } from '../context/CartContext'
+import { api } from '../services/api'
 
 export default function ProductDetail() {
   const { id } = useParams()
-  const product = getProductById(id)
   const { addToCart } = useCart()
-  const [size, setSize] = useState(product?.sizes[0] ?? '')
+  const [product, setProduct] = useState(null)
+  const [related, setRelated] = useState([])
+  const [size, setSize] = useState('')
   const [added, setAdded] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchProduct() {
+      setLoading(true)
+      try {
+        const res = await api.getProductById(id)
+        if (res?.product) {
+          const p = { ...res.product, id: res.product._id || id }
+          setProduct(p)
+          setSize(p.sizes?.[0] ?? 'M')
+          // Fetch related products from same category
+          const catRes = await api.getProducts(`?category=${p.category}`)
+          if (catRes?.products) {
+            setRelated(
+              catRes.products
+                .filter((r) => (r._id || r.id) !== id)
+                .slice(0, 4)
+                .map((r) => ({ ...r, id: r._id || r.id }))
+            )
+          }
+        }
+      } catch {
+        // Fallback to static data
+        const p = getProductById(id)
+        if (p) {
+          setProduct(p)
+          setSize(p.sizes?.[0] ?? 'M')
+          setRelated(staticProducts.filter((r) => r.category === p.category && r.id !== id).slice(0, 4))
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProduct()
+  }, [id])
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-7xl px-5 py-24 text-center md:px-8">
+          <p className="text-ink-muted animate-pulse">Loading product…</p>
+        </div>
+      </Layout>
+    )
+  }
 
   if (!product) {
     return (
@@ -26,10 +74,8 @@ export default function ProductDetail() {
     )
   }
 
-  const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4)
-
   function handleAdd() {
-    addToCart(product.id, size, 1)
+    addToCart(product.id || product._id, size, 1)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
@@ -75,11 +121,9 @@ export default function ProductDetail() {
             </p>
 
             <div className="mt-8">
-              <p className="text-[11px] font-medium tracking-[0.18em] text-ink-muted uppercase">
-                Size
-              </p>
+              <p className="text-[11px] font-medium tracking-[0.18em] text-ink-muted uppercase">Size</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {product.sizes.map((s) => (
+                {(product.sizes || ['S', 'M', 'L']).map((s) => (
                   <button
                     key={s}
                     type="button"
@@ -111,13 +155,15 @@ export default function ProductDetail() {
               )}
             </button>
 
-            <ul className="mt-10 space-y-2 border-t border-ink/10 pt-8">
-              {product.details.map((detail) => (
-                <li key={detail} className="text-sm text-ink-muted">
-                  · {detail}
-                </li>
-              ))}
-            </ul>
+            {product.details && product.details.length > 0 && (
+              <ul className="mt-10 space-y-2 border-t border-ink/10 pt-8">
+                {product.details.map((detail) => (
+                  <li key={detail} className="text-sm text-ink-muted">
+                    · {detail}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -126,7 +172,7 @@ export default function ProductDetail() {
             <h2 className="font-display text-2xl font-medium md:text-3xl">You may also like</h2>
             <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {related.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id || p._id} product={p} />
               ))}
             </div>
           </div>

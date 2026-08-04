@@ -12,14 +12,12 @@ export default function Login() {
 
   if (user) return <Navigate to="/" replace />
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
-
-    const result = login({ email: email.trim(), password })
+    const result = await login({ email: email.trim(), password })
     setLoading(false)
-
     if (!result.ok) {
       setError(result.error)
       return
@@ -31,7 +29,7 @@ export default function Login() {
     <div className="flex min-h-screen flex-col bg-cream text-ink">
       <header className="border-b border-ink/5 px-5 py-5 md:px-8">
         <Link to="/" className="inline-flex flex-col">
-          <span className="font-display text-2xl font-medium tracking-tight">Maren & Co</span>
+          <span className="font-display text-2xl font-medium tracking-tight">Maren &amp; Co</span>
           <span className="mt-0.5 text-[10px] font-medium tracking-[0.22em] text-ink-muted uppercase">
             Est. Oslo · 2014
           </span>
@@ -39,25 +37,19 @@ export default function Login() {
       </header>
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-14">
-        <p className="text-[11px] font-medium tracking-[0.28em] text-terracotta uppercase">
-          Account
-        </p>
+        <p className="text-[11px] font-medium tracking-[0.28em] text-terracotta uppercase">Account</p>
         <h1 className="mt-3 font-display text-4xl font-medium tracking-tight">Welcome back</h1>
-        <p className="mt-3 text-sm text-ink-muted">
-          Sign in to your Maren & Co account to continue shopping.
-        </p>
+        <p className="mt-3 text-sm text-ink-muted">Sign in to your Maren &amp; Co account to continue shopping.</p>
 
         <form onSubmit={handleSubmit} className="mt-10 space-y-5">
           {error && (
-            <p className="border border-terracotta/30 bg-terracotta/5 px-4 py-3 text-sm text-terracotta">
+            <p className="border border-terracotta/30 bg-terracotta/5 px-4 py-3 text-sm text-terracotta rounded">
               {error}
             </p>
           )}
 
           <label className="block">
-            <span className="text-[11px] font-medium tracking-[0.18em] text-ink-muted uppercase">
-              Email
-            </span>
+            <span className="text-[11px] font-medium tracking-[0.18em] text-ink-muted uppercase">Email</span>
             <input
               type="email"
               required
@@ -70,9 +62,7 @@ export default function Login() {
           </label>
 
           <label className="block">
-            <span className="text-[11px] font-medium tracking-[0.18em] text-ink-muted uppercase">
-              Password
-            </span>
+            <span className="text-[11px] font-medium tracking-[0.18em] text-ink-muted uppercase">Password</span>
             <input
               type="password"
               required
@@ -96,10 +86,7 @@ export default function Login() {
 
         <p className="mt-8 text-center text-sm text-ink-muted">
           New here?{' '}
-          <Link
-            to="/register"
-            className="font-medium text-ink underline underline-offset-4 hover:text-terracotta"
-          >
+          <Link to="/register" className="font-medium text-ink underline underline-offset-4 hover:text-terracotta">
             Create an account
           </Link>
         </p>

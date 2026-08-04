@@ -14,7 +14,7 @@ export default function Register() {
 
   if (user) return <Navigate to="/" replace />
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setError('')
 
@@ -24,7 +24,7 @@ export default function Register() {
     }
 
     setLoading(true)
-    const result = register({
+    const result = await register({
       name: name.trim(),
       email: email.trim(),
       password,

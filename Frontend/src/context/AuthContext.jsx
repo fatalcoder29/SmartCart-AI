@@ -1,58 +1,71 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { api } from '../services/api'
 
 const AuthContext = createContext(null)
-
-const STORAGE_KEY = 'maren_user'
-const USERS_KEY = 'maren_users'
+const SESSION_KEY = 'maren_session'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) setUser(JSON.parse(saved))
-    } catch {
-      localStorage.removeItem(STORAGE_KEY)
+    async function restoreSession() {
+      try {
+        const saved = localStorage.getItem(SESSION_KEY)
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          try {
+            const res = await api.getProfile()
+            setUser(res?.user || parsed)
+          } catch {
+            setUser(parsed)
+          }
+        }
+      } catch {
+        localStorage.removeItem(SESSION_KEY)
+      } finally {
+        setLoading(false)
+      }
     }
+    restoreSession()
   }, [])
 
-  function register({ name, email, password }) {
-    const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]')
-    if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      return { ok: false, error: 'An account with this email already exists.' }
+  async function register({ name, email, password }) {
+    try {
+      const res = await api.register({ name, email, password })
+      if (res?.user) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(res.user))
+        setUser(res.user)
+        return { ok: true }
+      }
+      return { ok: false, error: 'Registration failed. Please try again.' }
+    } catch (err) {
+      return { ok: false, error: err.message || 'Registration failed. Check your connection.' }
     }
-    const newUser = { name, email, password }
-    users.push(newUser)
-    localStorage.setItem(USERS_KEY, JSON.stringify(users))
-
-    const session = { name, email }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-    setUser(session)
-    return { ok: true }
   }
 
-  function login({ email, password }) {
-    const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]')
-    const found = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password,
-    )
-    if (!found) {
-      return { ok: false, error: 'Invalid email or password.' }
+  async function login({ email, password }) {
+    try {
+      const res = await api.login({ email, password })
+      if (res?.user) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(res.user))
+        setUser(res.user)
+        return { ok: true }
+      }
+      return { ok: false, error: 'Login failed. Please try again.' }
+    } catch (err) {
+      return { ok: false, error: err.message || 'Invalid email or password.' }
     }
-    const session = { name: found.name, email: found.email }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-    setUser(session)
-    return { ok: true }
   }
 
-  function logout() {
-    localStorage.removeItem(STORAGE_KEY)
+  async function logout() {
+    try { await api.logout() } catch { /* no-op */ }
+    localStorage.removeItem(SESSION_KEY)
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, register, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
