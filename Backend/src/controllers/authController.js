@@ -14,20 +14,21 @@ const sendAuthTokenResponse = (user, statusCode, res, message = 'Success') => {
   user.save({ validateBeforeSave: false })
 
   const isProduction = process.env.NODE_ENV === 'production'
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+  }
 
   // Access Token Cookie (15 mins)
   res.cookie('token', accessToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'strict',
+    ...cookieOptions,
     maxAge: 15 * 60 * 1000,
   })
 
   // Refresh Token Cookie (7 days)
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'strict',
+    ...cookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
 
@@ -243,8 +244,16 @@ const refreshToken = asyncHandler(async (req, res) => {
 // @route   POST /api/v1/auth/logout
 // @access  Public
 const logoutUser = asyncHandler(async (req, res) => {
-  res.cookie('token', '', { expires: new Date(0), httpOnly: true })
-  res.cookie('refreshToken', '', { expires: new Date(0), httpOnly: true })
+  const isProduction = process.env.NODE_ENV === 'production'
+  const cookieOptions = {
+    expires: new Date(0),
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+  }
+
+  res.cookie('token', '', cookieOptions)
+  res.cookie('refreshToken', '', cookieOptions)
 
   if (req.user) {
     const user = await User.findById(req.user.id)
