@@ -1,12 +1,28 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai')
 
 const getGeminiModel = () => {
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : ''
   if (!apiKey || apiKey === 'your_gemini_api_key') {
     return null
   }
   const genAI = new GoogleGenerativeAI(apiKey)
-  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  // Use gemini-2.0-flash which is supported by the Google Generative Language API
+  return genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+}
+
+// Test Endpoint Service
+const testGeminiConnection = async () => {
+  const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : ''
+  if (!apiKey || apiKey === 'your_gemini_api_key') {
+    throw new Error('GEMINI_API_KEY is missing or set to placeholder in Backend/.env')
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+
+  const result = await model.generateContent('Say Hello from Gemini API')
+  const response = await result.response
+  return response.text().trim()
 }
 
 // 1. AI Shopping Assistant Chat Completion
@@ -25,7 +41,6 @@ User Query: "${message}"
 Respond concisely and helpful in markdown format. Recommend matching products when appropriate.`
 
   if (!model) {
-    // Intelligent fallback if GEMINI_API_KEY is not set yet
     return `**SmartCart AI**: Thank you for asking! I recommend looking at our **Oslo Wool Coat** and **Cashmere Crew** for timeless elegance. *(Note: Add your GEMINI_API_KEY in Backend/.env for live Google Gemini AI completions)*`
   }
 
@@ -117,6 +132,7 @@ Return JSON object with keys: "keywords" (string), "category" (string or null), 
 }
 
 module.exports = {
+  testGeminiConnection,
   chatWithAssistant,
   generateProductDescription,
   summarizeReviews,
