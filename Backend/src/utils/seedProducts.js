@@ -140,8 +140,25 @@ const seedProducts = [
 const runSeed = async (mongoURI) => {
   try {
     await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 10000 })
+    console.log('[Seed] Connected to MongoDB')
+
+    // Delete all existing products
     await Product.deleteMany({})
-    const inserted = await Product.insertMany(seedProducts)
+    console.log('[Seed] Cleared existing products')
+
+    // Generate slug + sku before insert (insertMany skips pre-save hooks)
+    const productsToInsert = seedProducts.map((p, i) => {
+      const slug = p.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+        + '-' + (Date.now() + i) // ensure uniqueness
+
+      const sku = `SKU-${slug.split('-').slice(0, 2).join('-').toUpperCase()}-${i + 1}`
+      return { ...p, slug, sku, isActive: true }
+    })
+
+    const inserted = await Product.insertMany(productsToInsert, { ordered: true })
     console.log(`[Seed] ✅ ${inserted.length} products seeded successfully!`)
     await mongoose.disconnect()
     process.exit(0)

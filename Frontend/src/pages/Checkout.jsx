@@ -57,13 +57,15 @@ export default function Checkout() {
       // 1. Create Order on Backend
       const orderRes = await api.createOrder({
         orderItems: items.map((item) => ({
-          product: item.product.id || item.product._id,
+          // Use _id (MongoDB ObjectId) if available, fall back to productId string
+          // The backend validates this as a valid ObjectId — static products (id: '1') are skipped
+          product: item.product._id || item.product.id || item.productId,
           name: item.product.name,
-          image: item.product.image,
+          image: item.product.image || '',
           price: item.product.price,
           qty: item.quantity,
-          size: item.size || 'M',
-        })),
+          size: item.size || item.product?.sizes?.[0] || 'M',
+        })).filter((o) => o.product && o.product.length > 5), // Only include valid MongoDB IDs
         shippingAddress: {
           street: form.address,
           city: form.city,
