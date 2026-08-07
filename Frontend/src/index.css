@@ -13,6 +13,7 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -21,44 +22,162 @@ body {
   color: var(--color-ink);
   background: var(--color-cream);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+#root {
+  overflow-x: hidden;
+  min-height: 100dvh;
+}
+
+@media (max-width: 640px) {
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .text-xs a,
+  nav a,
+  table a,
+  table button {
+    min-height: unset;
+    min-width: unset;
+  }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-terracotta) 25%, transparent);
+  color: var(--color-ink);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-ink) 40%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-terracotta);
+  outline-offset: 2px;
 }
 
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.animate-fade-up {
-  animation: fade-up 0.8s ease-out both;
+.animate-fade-up { animation: fade-up 0.8s ease-out both; }
+.animate-fade-in { animation: fade-in 1s ease-out both; }
+.animate-scale-in { animation: scale-in 0.35s ease-out both; }
+.delay-1 { animation-delay: 0.12s; }
+.delay-2 { animation-delay: 0.24s; }
+.delay-3 { animation-delay: 0.36s; }
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-cream-dark) 25%,
+    color-mix(in srgb, var(--color-cream-dark) 60%, white) 50%,
+    var(--color-cream-dark) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.75rem;
 }
 
-.animate-fade-in {
-  animation: fade-in 1s ease-out both;
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  padding: 0.875rem 1.75rem;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+.btn-primary:hover {
+  background: var(--color-terracotta);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -6px color-mix(in srgb, var(--color-terracotta) 40%, transparent);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 20%, transparent);
+  color: var(--color-ink);
+  padding: 0.875rem 1.75rem;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+}
+.btn-outline:hover {
+  border-color: var(--color-terracotta);
+  color: var(--color-terracotta);
+  background: color-mix(in srgb, var(--color-terracotta) 5%, transparent);
 }
 
-.delay-1 {
-  animation-delay: 0.12s;
+.product-shine { position: relative; overflow: hidden; }
+.product-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.18) 45%, transparent 50%);
+  transform: translateX(-100%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
 }
+.group:hover .product-shine::after { transform: translateX(100%); }
 
-.delay-2 {
-  animation-delay: 0.24s;
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+.page-enter { animation: page-enter 0.45s ease-out both; }
 
-.delay-3 {
-  animation-delay: 0.36s;
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.animate-soft-pulse { animation: soft-pulse 2s ease-in-out infinite; }
+
+.btn-primary:active,
+.btn-outline:active {
+  transform: scale(0.98);
 }
