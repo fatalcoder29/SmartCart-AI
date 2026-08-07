@@ -1,28 +1,49 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai')
 
-const getGeminiModel = () => {
-  const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : ''
-  if (!apiKey || apiKey === 'your_gemini_api_key') {
-    return null
-  }
-  const genAI = new GoogleGenerativeAI(apiKey)
-  // Use gemini-2.0-flash which is supported by the Google Generative Language API
-  return genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+// Validate API key — must be non-empty and not a placeholder
+// Google AI Studio issues keys starting with AIzaSy... OR AQ... — both are valid
+const isValidKey = (key) => {
+  if (!key || typeof key !== 'string') return false
+  const k = key.trim()
+  return k.length > 20 && !k.includes('your_gemini') && !k.includes('your_key')
 }
 
-// Test Endpoint Service
+// Try models in order of preference
+const MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-pro']
+
+const getGeminiModel = () => {
+  const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : ''
+  if (!isValidKey(apiKey)) return null
+  const genAI = new GoogleGenerativeAI(apiKey)
+  return genAI.getGenerativeModel({ model: MODELS[0] })
+}
+
+// Test Endpoint Service — tries each model until one works
 const testGeminiConnection = async () => {
   const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : ''
-  if (!apiKey || apiKey === 'your_gemini_api_key') {
-    throw new Error('GEMINI_API_KEY is missing or set to placeholder in Backend/.env')
+
+  if (!isValidKey(apiKey)) {
+    throw new Error('GEMINI_API_KEY is missing or set to placeholder. Add your key from aistudio.google.com/app/apikey')
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  let lastError = null
 
-  const result = await model.generateContent('Say Hello from Gemini API')
-  const response = await result.response
-  return response.text().trim()
+  for (const modelName of MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName })
+      const result = await model.generateContent('Say Hello from Gemini API')
+      const response = await result.response
+      const text = response.text().trim()
+      console.log(`[Gemini] Connected using model: ${modelName}`)
+      return text
+    } catch (err) {
+      console.warn(`[Gemini] Model ${modelName} failed: ${err.message}`)
+      lastError = err
+    }
+  }
+
+  throw lastError
 }
 
 // 1. AI Shopping Assistant Chat Completion
