@@ -28,7 +28,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-ink/5 bg-cream/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream shadow-sm" style={{ backgroundColor: '#fdfbf7' }}>
         <nav className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4 md:px-8 lg:px-10">
           <ul className="hidden flex-1 items-center gap-5 xl:gap-6 lg:flex">
             {links.map((link) => (
@@ -106,14 +106,14 @@ export default function Navbar() {
         </nav>
 
         {open && (
-          <div className="fixed inset-0 z-50 flex flex-col bg-cream lg:hidden">
+          <div className="fixed inset-0 z-50 flex flex-col bg-cream lg:hidden" style={{ backgroundColor: '#fdfbf7' }}>
             <div className="flex items-center justify-between border-b border-ink/5 px-5 py-4">
               <span className="font-display text-xl">Maren & Co</span>
               <button type="button" aria-label="Close menu" className="flex h-10 w-10 items-center justify-center" onClick={() => setOpen(false)}>
                 <X className="h-5 w-5" strokeWidth={1.5} />
               </button>
             </div>
-            <ul className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-8 safe-bottom">
+            <ul className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-8">
               {links.map((link) => (
                 <li key={link.label}>
                   <Link to={link.to} className="block font-display text-2xl sm:text-3xl" onClick={() => setOpen(false)}>{link.label}</Link>
