@@ -5,7 +5,7 @@ const Product = require('../models/Product')
 const seedProducts = [
   {
     name: 'Oslo Wool Coat',
-    price: 420,
+    price: 34999,
     category: 'outerwear',
     tag: 'New',
     image: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=800&q=80',
@@ -16,7 +16,7 @@ const seedProducts = [
   },
   {
     name: 'Cashmere Crew',
-    price: 186,
+    price: 14999,
     category: 'knitwear',
     tag: null,
     image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80',
@@ -27,7 +27,7 @@ const seedProducts = [
   },
   {
     name: 'Saddle Crossbody',
-    price: 245,
+    price: 19999,
     category: 'leather',
     tag: 'Limited',
     image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80',
@@ -38,7 +38,7 @@ const seedProducts = [
   },
   {
     name: 'Nordic Loafer',
-    price: 198,
+    price: 15999,
     category: 'footwear',
     tag: null,
     image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=800&q=80',
@@ -49,7 +49,7 @@ const seedProducts = [
   },
   {
     name: 'Merino Scarf',
-    price: 98,
+    price: 7999,
     category: 'knitwear',
     tag: null,
     image: 'https://images.unsplash.com/photo-1608256246200-53bd7f3c1c6e?auto=format&fit=crop&w=800&q=80',
@@ -60,7 +60,7 @@ const seedProducts = [
   },
   {
     name: 'Structured Blazer',
-    price: 340,
+    price: 27999,
     category: 'outerwear',
     tag: 'New',
     image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6aae4?auto=format&fit=crop&w=800&q=80',
@@ -71,7 +71,7 @@ const seedProducts = [
   },
   {
     name: 'Leather Belt',
-    price: 78,
+    price: 6299,
     category: 'leather',
     tag: null,
     image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
@@ -82,7 +82,7 @@ const seedProducts = [
   },
   {
     name: 'Silk Pocket Square',
-    price: 52,
+    price: 4199,
     category: 'objects',
     tag: null,
     image: 'https://images.unsplash.com/photo-1584030373081-f37b7bb4fa8e?auto=format&fit=crop&w=800&q=80',
@@ -93,7 +93,7 @@ const seedProducts = [
   },
   {
     name: 'Weekender Bag',
-    price: 320,
+    price: 25999,
     category: 'leather',
     tag: 'Limited',
     image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
@@ -104,7 +104,7 @@ const seedProducts = [
   },
   {
     name: 'Cotton Oxford Shirt',
-    price: 128,
+    price: 9999,
     category: 'knitwear',
     tag: null,
     image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=800&q=80',
@@ -115,7 +115,7 @@ const seedProducts = [
   },
   {
     name: 'Chelsea Boot',
-    price: 265,
+    price: 21999,
     category: 'footwear',
     tag: 'New',
     image: 'https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&w=800&q=80',
@@ -126,7 +126,7 @@ const seedProducts = [
   },
   {
     name: 'Studio Ceramic Vase',
-    price: 68,
+    price: 5499,
     category: 'objects',
     tag: null,
     image: 'https://images.unsplash.com/photo-1612196808214-b7e239e5f6b7?auto=format&fit=crop&w=800&q=80',
@@ -141,23 +141,19 @@ const runSeed = async (mongoURI) => {
   try {
     await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 10000 })
     console.log('[Seed] Connected to MongoDB')
-
-    // Delete all existing products
     await Product.deleteMany({})
     console.log('[Seed] Cleared existing products')
-
-    // Generate slug + sku before insert (insertMany skips pre-save hooks)
     const productsToInsert = seedProducts.map((p, i) => {
-      const slug = p.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
-        + '-' + (Date.now() + i) // ensure uniqueness
-
+      const slug =
+        p.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') +
+        '-' +
+        (Date.now() + i)
       const sku = `SKU-${slug.split('-').slice(0, 2).join('-').toUpperCase()}-${i + 1}`
       return { ...p, slug, sku, isActive: true }
     })
-
     const inserted = await Product.insertMany(productsToInsert, { ordered: true })
     console.log(`[Seed] ✅ ${inserted.length} products seeded successfully!`)
     await mongoose.disconnect()
