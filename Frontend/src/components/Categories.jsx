@@ -10,8 +10,8 @@ const categories = [
 
 export default function Categories() {
   return (
-    <section id="women" className="border-t border-ink/5 bg-cream-dark/40 py-16 md:py-20">
-      <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
+    <section id="women" className="border-t border-ink/5 bg-cream-dark/40 py-12 sm:py-16 md:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-5 md:px-8 lg:px-10">
         <div className="mb-10 flex flex-col gap-3 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[11px] font-medium tracking-[0.28em] text-terracotta uppercase">
@@ -28,11 +28,7 @@ export default function Categories() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((cat) => (
-            <Link
-              key={cat.name}
-              to={`/products?category=${cat.slug}`}
-              className="group block"
-            >
+            <Link key={cat.name} to={`/products?category=${cat.slug}`} className="group block">
               <div className="aspect-[4/5] overflow-hidden bg-cream rounded-xl">
                 <img
                   src={categoryImages[cat.slug]}
