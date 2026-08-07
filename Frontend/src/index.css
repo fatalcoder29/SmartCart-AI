@@ -181,3 +181,84 @@ body {
 .btn-outline:active {
   transform: scale(0.98);
 }
+
+/* Navbar interactions */
+.nav-icon-btn {
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.nav-icon-btn:hover {
+  color: var(--color-terracotta);
+  background: color-mix(in srgb, var(--color-ink) 5%, transparent);
+}
+.nav-icon-btn:active {
+  transform: scale(0.92);
+}
+
+.nav-link {
+  position: relative;
+  transition: color 0.2s ease;
+}
+.nav-link:not([href="/admin"])::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 1.5px;
+  background: var(--color-terracotta);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+.nav-link:not([href="/admin"]):hover::after {
+  transform: scaleX(1);
+}
+
+@keyframes nav-menu-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes nav-menu-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-12px); }
+}
+@keyframes nav-item-in {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes badge-pop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.nav-menu-enter {
+  animation: nav-menu-in 0.3s ease-out both;
+}
+.nav-menu-exit {
+  animation: nav-menu-out 0.25s ease-in both;
+}
+.nav-menu-item {
+  opacity: 0;
+  animation: nav-item-in 0.35s ease-out both;
+}
+.nav-mobile-link {
+  color: var(--color-ink);
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.nav-mobile-link:hover,
+.nav-mobile-link:active {
+  color: var(--color-terracotta);
+  background: color-mix(in srgb, var(--color-terracotta) 6%, transparent);
+}
+.nav-mobile-link:active {
+  transform: scale(0.98);
+}
+
+.nav-dropdown {
+  animation: nav-menu-in 0.2s ease-out both;
+}
+
+.animate-badge-pop {
+  animation: badge-pop 0.35s ease-out both;
+}
