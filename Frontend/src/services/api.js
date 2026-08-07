@@ -1,4 +1,27 @@
-const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:5000/api/v1'
+const PRODUCTION_API_URL = 'https://smartcart-ai-pcu4.onrender.com/api/v1'
+const LOCAL_API_URL = 'http://localhost:5000/api/v1'
+
+const normalizeApiBaseUrl = (url) => {
+  const cleanUrl = (url || '').trim().replace(/\/+$/, '')
+
+  if (!cleanUrl || cleanUrl === '/') {
+    return (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD)
+      ? PRODUCTION_API_URL
+      : LOCAL_API_URL
+  }
+
+  if (!/^https?:\/\//i.test(cleanUrl)) {
+    return (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD)
+      ? PRODUCTION_API_URL
+      : LOCAL_API_URL
+  }
+
+  return cleanUrl.endsWith('/api/v1') ? cleanUrl : `${cleanUrl}/api/v1`
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(
+  typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_API_URL : undefined
+)
 
 async function request(endpoint, options = {}) {
   const defaultHeaders = {
@@ -14,8 +37,12 @@ async function request(endpoint, options = {}) {
     credentials: 'include',
   }
 
+  // Ensure endpoint starts with a single slash and no double slashes
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+  const targetUrl = `${API_BASE_URL}${cleanEndpoint}`.replace(/([^:]\/)\/+/g, '$1')
+
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, config)
+    const res = await fetch(targetUrl, config)
     const data = await res.json()
 
     if (!res.ok) {

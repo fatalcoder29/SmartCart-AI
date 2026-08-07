@@ -22,10 +22,18 @@ const analyticsRoutes = require('./routes/analyticsRoutes')
 
 const app = express()
 
+// 0. URL Normalizer Middleware (Converts leading double slashes e.g. //auth/register -> /auth/register)
+app.use((req, res, next) => {
+  if (req.url.startsWith('//')) {
+    req.url = req.url.replace(/^\/+/, '/')
+  }
+  next()
+})
+
 // 1. Security HTTP Headers (Helmet)
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Disable for dev image hosting compatibility
+    contentSecurityPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 )
@@ -40,7 +48,7 @@ const apiLimiter = rateLimit({
 })
 app.use('/api/v1', apiLimiter)
 
-// Strict Rate Limiting for Auth Endpoints (10 requests per 15 mins)
+// Strict Rate Limiting for Auth Endpoints (20 requests per 15 mins)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -48,6 +56,8 @@ const authLimiter = rateLimit({
 })
 app.use('/api/v1/auth/login', authLimiter)
 app.use('/api/v1/auth/register', authLimiter)
+app.use('/auth/login', authLimiter)
+app.use('/auth/register', authLimiter)
 
 // 3. CORS Configuration
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
@@ -61,7 +71,6 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true)
       }
-
       return callback(new Error(`CORS blocked request from origin: ${origin}`))
     },
     credentials: true,
@@ -89,8 +98,8 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'))
 }
 
-// Health Check Endpoint
-app.get('/api/v1/health', (req, res) => {
+// Health Check Endpoints
+app.get(['/api/v1/health', '/health'], (req, res) => {
   const dbState = mongoose.connection.readyState
   const dbStatusMap = {
     0: 'Disconnected',
@@ -111,7 +120,7 @@ app.get('/api/v1/health', (req, res) => {
   })
 })
 
-// Mount API Routes
+// Mount Primary API v1 Routes
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/products', productRoutes)
 app.use('/api/v1/orders', orderRoutes)
@@ -119,6 +128,15 @@ app.use('/api/v1/payment', paymentRoutes)
 app.use('/api/v1/coupons', couponRoutes)
 app.use('/api/v1/ai', aiRoutes)
 app.use('/api/v1/analytics', analyticsRoutes)
+
+// Mount Alias Routes (Supports requests without /api/v1 prefix)
+app.use('/auth', authRoutes)
+app.use('/products', productRoutes)
+app.use('/orders', orderRoutes)
+app.use('/payment', paymentRoutes)
+app.use('/coupons', couponRoutes)
+app.use('/ai', aiRoutes)
+app.use('/analytics', analyticsRoutes)
 
 // 404 Route Handler
 app.use(notFound)
